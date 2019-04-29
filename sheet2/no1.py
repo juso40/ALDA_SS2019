@@ -3,14 +3,17 @@ class UniversalContainer:
         self.capacity_ = 1
         self.data_ = None
         self.size_ = 0
+        self = []
 
         pass
     def size(self):
-        pass
+        return self.size
     def capacity(self):
-        pass
+        return self.capacity
     def push(self, v):
-        pass
+        append(self, v)
+        self.capacity += 1
+        self.size += 1
     def popFirst(self):
         pass
     def popLast(self):
@@ -21,3 +24,4 @@ class UniversalContainer:
         pass
 
 c = UniversalContainer()
+c.push(1)

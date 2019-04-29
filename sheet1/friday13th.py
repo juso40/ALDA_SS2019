@@ -24,8 +24,6 @@ def friday13th():
                         count+=1
     print(count)
 
-
-
 friday13th()
 
 
@@ -54,7 +52,5 @@ def inputBDay():
             break
         except:
             print("\nThat is not a valid Date!")
-
-
 
 inputBDay()
