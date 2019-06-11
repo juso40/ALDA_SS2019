@@ -1,4 +1,3 @@
-
 def hhash(s):
     h = 0
     for k in s:
@@ -43,16 +42,17 @@ h = 857505
 
 """
 To make this code work with any generated hash from the hhas() funciton
-simply replace the 857505 in the calculation of the solution with your own
-generated hash of a strig with the lenght of 4
+simply replace the value for "MyHash" with your own
+generated hash of a strig of the lenght of 4
 """
+MyHash=857505
 
 f = open("collisions.txt", "w+")
 for A in range(64, 123):
     for z in range(64, 123):
         for W in range(64, 123):
             for o in range(64, 123):
-                solution = (((((857505-o)/23)-W)/23)-z)/23-A
+                solution = (((((MyHash-o)/23)-W)/23)-z)/23-A
                 if solution.is_integer and solution == 0:
                     print(chr(A), chr(z), chr(W), chr(o))
                     s = chr(A) + chr(z) + chr(W) + chr(o)
