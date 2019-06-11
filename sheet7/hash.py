@@ -41,6 +41,12 @@ h = 857505
 
 """
 
+"""
+To make this code work with any generated hash from the hhas() funciton
+simply replace the 857505 in the calculation of the solution with your own
+generated hash of a strig with the lenght of 4
+"""
+
 f = open("collisions.txt", "w+")
 for A in range(64, 123):
     for z in range(64, 123):
