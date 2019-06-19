@@ -32,7 +32,7 @@ def bucketMap(r, M):
   return int(r**2 * M)
 
 def naiveBucketMap(r, M):
-    return r*m
+    return r*M
 
 def bucketSort(a, d):
     N = len(a)
