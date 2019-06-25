@@ -21,7 +21,7 @@ def kochSnowflake(level):
                 p1X = p1[0] / 3
                 p1Y = p1[1] / 3
 
-                if i == len(coordinates) - 1:   #get a third of our x/y of point2
+                if i == len(coordinates) - 1:#get a third of our x/y of point2
                     p2 = coordinates[0]
                 else:
                     p2 = coordinates[i+1]
@@ -43,20 +43,17 @@ def kochSnowflake(level):
                 #add the rotated vector on top of the first third, for the midpoint
                 midpoint = (rotatedX + third1[0], rotatedY + third1[1])
             
-                XY.extend((coordinates[i],
-                            third1,
-                            midpoint,
-                            third2))
+                XY.extend((p1,
+                           third1,
+                           midpoint,
+                           third2))
             coordinates = XY
         return XY
             
          
 XY = kochSnowflake(9)
-for i in XY:
-    X = i[0]
-    Y = i[1]
 
 plt.figure(figsize=(8,8))
 plt.axis("equal")
-plt.fill(X, Y)
+plt.fill([i[0] for i in XY], [i[1] for i in XY])
 plt.savefig('koch_snowflake.png')
