@@ -17,11 +17,11 @@ def kochSnowflake(level):
         for _ in range(level):
             for i in range(len(coordinates)):
 
-                p1 = coordinates[i]
+                p1 = coordinates[i] #get a third of our x/y of point1
                 p1X = p1[0] / 3
                 p1Y = p1[1] / 3
 
-                if i == len(coordinates) - 1:
+                if i == len(coordinates) - 1:   #get a third of our x/y of point2
                     p2 = coordinates[0]
                 else:
                     p2 = coordinates[i+1]
@@ -29,15 +29,18 @@ def kochSnowflake(level):
                 p2X = p2[0] / 3
                 p2Y = p2[1] / 3
 
-                third1 = (p1X + p1X + p2X, p1Y + p1Y + p2Y)
-                third2 = (p1X + p2X + p2X, p1Y + p2Y+ p2Y)
+                third1 = (p1X + p1X + p2X, p1Y + p1Y + p2Y)#Third of the way from p1 to p2
+                third2 = (p1X + p2X + p2X, p1Y + p2Y+ p2Y)#Two thirds from p1 to p2
 
+                #only a temp vector variable
                 vec2DX = third2[0] - third1[0]
                 vec2DY = third2[1] - third1[1] 
- 
+
+                #rotate our temp vector by 60 degrees
                 rotatedX = cos60 * vec2DX + sin60 * vec2DY
                 rotatedY = -sin60 * vec2DX + cos60 * vec2DY
 
+                #add the rotated vector on top of the first third, for the midpoint
                 midpoint = (rotatedX + third1[0], rotatedY + third1[1])
             
                 XY.extend((coordinates[i],
@@ -49,10 +52,11 @@ def kochSnowflake(level):
             
          
 XY = kochSnowflake(9)
-#X = [i[0] for i in XY]
-#Y = [i[1] for i in XY]
+for i in XY:
+    X = i[0]
+    Y = i[1]
 
 plt.figure(figsize=(8,8))
 plt.axis("equal")
-plt.fill([i[0] for i in XY], [i[1] for i in XY])
+plt.fill(X, Y)
 plt.savefig('koch_snowflake.png')
