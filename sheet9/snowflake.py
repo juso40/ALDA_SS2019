@@ -25,7 +25,7 @@ def kochSnowflake(level):
                     p2 = coordinates[0]
                 else:
                     p2 = coordinates[i+1]
-                
+
                 p2X = p2[0] / 3
                 p2Y = p2[1] / 3
 
@@ -42,7 +42,7 @@ def kochSnowflake(level):
 
                 #add the rotated vector on top of the first third, for the midpoint
                 midpoint = (rotatedX + third1[0], rotatedY + third1[1])
-            
+
                 XY.extend((p1,
                            third1,
                            midpoint,
