@@ -1,4 +1,7 @@
 from pgm import *
+from datetime import datetime
+
+startTime = datetime.now()
 
 width, height, data = readPGM("cells.pgm")
 
@@ -11,20 +14,6 @@ writePGM(width, height, mask, "masked.pgm")
 
 
 def createGraph(width, height, mask):
-    def getRight(x, y):
-        if x != width - 1:
-            return mask[x + 1 + y * width]
-
-    def getLeft(x, y):
-        return mask[x - 1 + y * width]
-
-    def getUp(x, y):
-        return mask[x + (y - 1) * width]
-
-    def getDown(x, y):
-        if y != height - 1:
-            return mask[x + (y + 1) * width]
-
     def tryRight(pixel, right, tempList):
         if pixel == right:
             tempList.append(x + 1 + y * width)
@@ -41,54 +30,42 @@ def createGraph(width, height, mask):
         if pixel == down:
             tempList.append(x + (y + 1) * width)
 
-
     graph = []
 
     for index, pixel in enumerate(mask):
         x, y = index % width, index // width
         tempList = []
-        Left = getLeft(x, y)
-        Right = getRight(x, y)
-        Up = getUp(x, y)
-        Down = getDown(x, y)
+        Left = mask[(index - 1) % len(mask)]
+        Right = mask[(index + 1) % len(mask)]
+        Up = mask[(index - width) % len(mask)]
+        Down = mask[(index + width) % len(mask)]
 
-        # oben links -> 2 nachbarn
-        if x == 0 and y == 0:
+        if x == 0:
             tryRight(pixel, Right, tempList)
-            tryDown(pixel, Down, tempList)
-        # unten links -> 2 nachbarn
-        elif x == 0 and y == height - 1:
-            tryRight(pixel, Right, tempList)
-            tryUp(pixel, Up, tempList)
-        # oben rechts -> 2 nachbarn
-        elif x == width - 1 and y == 0:
+            if y != 0 != height - 1:
+                tryUp(pixel, Up, tempList)
+                tryDown(pixel, Down, tempList)
+            elif y == 0:
+                tryDown(pixel, Down, tempList)
+            elif y == height - 1:
+                tryUp(pixel, Up, tempList)
+        elif x == width - 1:
             tryLeft(pixel, Left, tempList)
-            tryDown(pixel, Down, tempList)
-        # unten rechts -> 2 nachbarn
-        elif x == width - 1 and y == height - 1:
-            tryLeft(pixel, Left, tempList)
-            tryUp(pixel, Up, tempList)
-        # linke kante -> 3 nachbarn
-        elif x == 0:
-            tryRight(pixel, Right, tempList)
-            tryUp(pixel, Up, tempList)
-            tryDown(pixel, Down, tempList)
-        # rechte kante -> 3 nachbarn
-        elif x == width:
-            tryLeft(pixel, Left, tempList)
-            tryUp(pixel, Left, tempList)
-            tryDown(pixel, Down, tempList)
-        # top line -> 3 nachbarn
+            if y != 0 != height - 1:
+                tryUp(pixel, Up, tempList)
+                tryDown(pixel, Down, tempList)
+            elif y == 0:
+                tryDown(pixel, Down, tempList)
+            elif y == height - 1:
+                tryUp(pixel, Up, tempList)
         elif y == 0:
-            tryRight(pixel, Right, tempList)
             tryLeft(pixel, Left, tempList)
+            tryRight(pixel, Right, tempList)
             tryDown(pixel, Down, tempList)
-        # bottom line -> 3 nachbarn
         elif y == height - 1:
-            tryRight(pixel, Right, tempList)
             tryLeft(pixel, Left, tempList)
+            tryRight(pixel, Right, tempList)
             tryUp(pixel, Up, tempList)
-        # rest -> 4 nachbarn
         else:
             tryRight(pixel, Right, tempList)
             tryLeft(pixel, Left, tempList)
@@ -196,3 +173,4 @@ def createOutput(labeling, size, intensity):
 newData = createOutput(labeling, size, intensity)
 
 writePGM(width, height, newData, "output.pgm")
+print(datetime.now() - startTime)
