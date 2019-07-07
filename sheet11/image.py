@@ -1,80 +1,54 @@
 from pgm import *
+from collections import Counter
 from datetime import datetime
+import cProfile
+
+
+def do_cprofile(func):
+    def profiled_func(*args, **kwargs):
+        profile = cProfile.Profile()
+        try:
+            profile.enable()
+            result = func(*args, **kwargs)
+            profile.disable()
+            return result
+        finally:
+            profile.print_stats()
+    return profiled_func
+
 
 startTime = datetime.now()
 
 width, height, data = readPGM("cells.pgm")
 
 
-def createMask(width, height, data, treshold):
-    return [0 if value < treshold else 255 for value in data]
+
+def createMask(width, height, data, threshold):
+    return [0 if value < threshold else 255 for value in data]
+
 
 mask = createMask(width, height, data, 60)
 writePGM(width, height, mask, "masked.pgm")
 
 
-def createGraph(width, height, mask):
-    def tryRight(pixel, right, tempList):
-        if pixel == right:
-            tempList.append(x + 1 + y * width)
+def get_neighbours(width, height, data, index, value):
+    neighbours = []
+    if index + width < width * height and data[index + width] == value:
+        neighbours.append(index + width)
+    if (index + 1) % width != 0 and data[index + 1] == value:
+        neighbours.append(index + 1)
+    if (index - 1) % width != 0 and data[index - 1] == value:
+        neighbours.append(index - 1)
+    if index - width >= 0 and data[index - width] == value:
+        neighbours.append(index - width)
+    return neighbours
 
-    def tryLeft(pixel, left, tempList):
-        if pixel == left:
-            tempList.append(x - 1 + y * width)
-
-    def tryUp(pixel, up, tempList):
-        if pixel == up:
-            tempList.append(x + (y - 1) * width)
-
-    def tryDown(pixel, down, tempList):
-        if pixel == down:
-            tempList.append(x + (y + 1) * width)
-
+@do_cprofile
+def createGraph(width, height, data):
     graph = []
-
-    for index, pixel in enumerate(mask):
-        x, y = index % width, index // width
-        tempList = []
-        Left = mask[(index - 1) % len(mask)]
-        Right = mask[(index + 1) % len(mask)]
-        Up = mask[(index - width) % len(mask)]
-        Down = mask[(index + width) % len(mask)]
-
-        if x == 0:
-            tryRight(pixel, Right, tempList)
-            if y != 0 != height - 1:
-                tryUp(pixel, Up, tempList)
-                tryDown(pixel, Down, tempList)
-            elif y == 0:
-                tryDown(pixel, Down, tempList)
-            elif y == height - 1:
-                tryUp(pixel, Up, tempList)
-        elif x == width - 1:
-            tryLeft(pixel, Left, tempList)
-            if y != 0 != height - 1:
-                tryUp(pixel, Up, tempList)
-                tryDown(pixel, Down, tempList)
-            elif y == 0:
-                tryDown(pixel, Down, tempList)
-            elif y == height - 1:
-                tryUp(pixel, Up, tempList)
-        elif y == 0:
-            tryLeft(pixel, Left, tempList)
-            tryRight(pixel, Right, tempList)
-            tryDown(pixel, Down, tempList)
-        elif y == height - 1:
-            tryLeft(pixel, Left, tempList)
-            tryRight(pixel, Right, tempList)
-            tryUp(pixel, Up, tempList)
-        else:
-            tryRight(pixel, Right, tempList)
-            tryLeft(pixel, Left, tempList)
-            tryDown(pixel, Down, tempList)
-            tryUp(pixel, Up, tempList)
-
-        graph.append(tempList[:])
-        tempList *= 0
-
+    for index, element in enumerate(data):
+        neighbours = get_neighbours(width, height, data, index, element)
+        graph.append(neighbours)
     return graph
 
 
@@ -119,55 +93,37 @@ writePGM(width, height, labeling, "labeling.pgm")
 
 
 def getSize(labeling):
-    size = []
-    helperList = []
-    for label in labeling:
-        if label not in helperList:
-            size.append((label, labeling.count(label)))
-            helperList.append(label)
-    return size
+    return list(Counter(labeling).values())
 
 
 size = getSize(labeling)
 
 
 def getMaxIntensity(data, labeling):
-    intensity = []
-    helperList = []
-    checkIndex = []
-    for label in labeling:
-        if label not in helperList:
-            checkIndex.append([label, [i for i, x in enumerate(labeling) if x == label]])
-            helperList.append(label)
-    for temp in checkIndex:
-        tempIntensity = []
-        for index in temp[1]:
-            tempIntensity.append(data[index])
-        intensity.append([temp[0], max(tempIntensity)])
-        tempIntensity.clear()
-    return intensity
+    max_label = max(labeling)
+    intensities = [0] * (max_label + 1)
+    for label, value in zip(labeling, data):
+        if intensities[label] < value:
+            intensities[label] = value
+    return intensities
 
 
 intensity = getMaxIntensity(data, labeling)
 
 
-def createOutput(labeling, size, intensity):
-    whiteTreshold = 220
-    newData = []
-    less_than_30 = [x[0] for x in size if x[1] < 30]
-    white = [x[0] for x in intensity if x[1] > whiteTreshold]
-    gray = [x[0] for x in intensity if x[1] <= whiteTreshold]
-
-    for label in labeling:
-        if label == 0:
-            newData.append(0)
-        elif label in less_than_30:
-            newData.append(255)
-        elif label in white:
-            newData.append(160)
-        elif label in gray:
-            newData.append(80)
-    return newData
+def createOutput(labeling, sizes, intensities):
+    white_threshold = 220
+    black_threshold = 60
+    output = [0] * len(labeling)
+    for index, label in enumerate(labeling):
+        label = labeling[index]
+        if sizes[label] < 30:
+            output[index] = 255
+        elif intensities[label] >= white_threshold:
+            output[index] = 160
+        elif intensities[label] >= black_threshold:
+            output[index] = 80
+    return output
 
 
 newData = createOutput(labeling, size, intensity)
