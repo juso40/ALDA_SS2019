@@ -1,58 +1,32 @@
 from pgm import *
 from collections import Counter
-from datetime import datetime
-import cProfile
-
-
-def do_cprofile(func):
-    def profiled_func(*args, **kwargs):
-        profile = cProfile.Profile()
-        try:
-            profile.enable()
-            result = func(*args, **kwargs)
-            profile.disable()
-            return result
-        finally:
-            profile.print_stats()
-    return profiled_func
-
-
-startTime = datetime.now()
-
-width, height, data = readPGM("cells.pgm")
-
 
 
 def createMask(width, height, data, threshold):
     return [0 if value < threshold else 255 for value in data]
 
 
-mask = createMask(width, height, data, 60)
-writePGM(width, height, mask, "masked.pgm")
-
-
-def get_neighbours(width, height, data, index, value):
+def get_neighbours(width, bottom_limiter, data, index, value):
     neighbours = []
-    if index + width < width * height and data[index + width] == value:
+    if index + width < bottom_limiter and data[index + width] == value:
         neighbours.append(index + width)
     if (index + 1) % width != 0 and data[index + 1] == value:
         neighbours.append(index + 1)
-    if (index - 1) % width != 0 and data[index - 1] == value:
+    if index % width != 0 and data[index - 1] == value:
         neighbours.append(index - 1)
     if index - width >= 0 and data[index - width] == value:
         neighbours.append(index - width)
     return neighbours
 
-@do_cprofile
+
 def createGraph(width, height, data):
-    graph = []
+    bottom_limiter = width * height
+    graph = [[]] * len(data)
     for index, element in enumerate(data):
-        neighbours = get_neighbours(width, height, data, index, element)
-        graph.append(neighbours)
+        neighbours = get_neighbours(width, bottom_limiter, data, index, element)
+        graph[index] = neighbours
     return graph
 
-
-graph = createGraph(width, height, mask)
 
 
 def findAnchor(anchors, node):
@@ -87,16 +61,8 @@ def connectedComponents(graph):
     return anchors, labels
 
 
-anchors, labeling = connectedComponents(graph)
-
-writePGM(width, height, labeling, "labeling.pgm")
-
-
 def getSize(labeling):
     return list(Counter(labeling).values())
-
-
-size = getSize(labeling)
 
 
 def getMaxIntensity(data, labeling):
@@ -106,9 +72,6 @@ def getMaxIntensity(data, labeling):
         if intensities[label] < value:
             intensities[label] = value
     return intensities
-
-
-intensity = getMaxIntensity(data, labeling)
 
 
 def createOutput(labeling, sizes, intensities):
@@ -126,7 +89,17 @@ def createOutput(labeling, sizes, intensities):
     return output
 
 
-newData = createOutput(labeling, size, intensity)
+width, height, data = readPGM("cells.pgm")
 
+mask = createMask(width, height, data, 60)
+writePGM(width, height, mask, "masked.pgm")
+
+graph = createGraph(width, height, mask)
+anchors, labeling = connectedComponents(graph)
+writePGM(width, height, labeling, "labeling.pgm")
+
+size = getSize(labeling)
+intensity = getMaxIntensity(data, labeling)
+
+newData = createOutput(labeling, size, intensity)
 writePGM(width, height, newData, "output.pgm")
-print(datetime.now() - startTime)
